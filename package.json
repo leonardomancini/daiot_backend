@@ -1,0 +1,21 @@
+{
+  "name": "smart-home",
+  "description": "Backend for smart home project",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">= 12.0.0"
+  },
+  "author": "Leonardo Mancini",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "express": "^4.17.1",
+    "@google-cloud/bigquery": "4.1.2",
+    "cors": "^2.8.5",
+    "@google-cloud/iot": "^2.0.0"
+  }
+}
