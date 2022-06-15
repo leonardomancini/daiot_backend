@@ -1,0 +1,38 @@
+exports.pubsubToBQ = (event, callback) => {
+const pubsubMessage = event.data;
+const pubsubGCPdeviceId = event.attributes.deviceId;
+const {BigQuery} = require('@google-cloud/bigquery');
+const bigquery = new BigQuery();
+var datos_sensor = JSON.parse(Buffer.from(pubsubMessage,
+'base64').toString());
+var datos_insert = JSON.parse( '{}' );
+var timestamp_registro = new Date();
+timestamp_registro.setHours(timestamp_registro.getHours() - 3);
+datos_insert.timestamp = timestamp_registro;
+datos_insert.dev_id = datos_sensor.dev_id;
+datos_insert.temperatura = datos_sensor.temperatura;
+datos_insert.humedad = datos_sensor.humedad;
+datos_insert.presion = datos_sensor.presion;
+datos_insert.rssi = datos_sensor.rssi;
+datos_insert.gcp_device_id = pubsubGCPdeviceId;
+datos_insert.wake_up_count = datos_sensor.wake_up_count;
+datos_insert.last_error_count = datos_sensor.last_error_count;
+datos_insert.last_error_code = datos_sensor.last_error_code;
+datos_insert.led_1 = (datos_sensor.led_1=='1')?true:false;
+datos_insert.last_on_time = datos_sensor.last_on_time;
+datos_insert.sntp_response_time = datos_sensor.sntp_response_time;
+bigquery
+.dataset("devices")
+.table ("sensores_tph_origen")
+.insert (datos_insert, {'ignoreUnknownValues':true, 'raw':false})
+.catch(err => {
+if (err && err.name === 'PartialFailureError') {
+if (err.errors && err.errors.length > 0) {
+console.log('Insert errors:');
+err.errors.forEach(err => console.error(err));
+}
+} else {
+console.error('ERROR BigQuery:', err);
+}
+});
+};

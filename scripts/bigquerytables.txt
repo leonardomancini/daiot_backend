@@ -1,0 +1,27 @@
+CREATE TABLE `daiot-smart-home.devices.sensores_tph_desc_ubicacion` ( dev_id INT64, ubicacion STRING, propietario STRING, descripcion STRING, temp_offset FLOAT64, dev_id_gcp STRING ); 
+CREATE TABLE `daiot-smart-home.devices.sensores_tph_origen` ( timestamp TIMESTAMP, gcp_device_id STRING, dev_id INT64, temperatura FLOAT64, presion FLOAT64, humedad FLOAT64, rssi INT64, wake_up_count INT64, last_error_count INT64, last_error_code INT64, last_on_time INT64, sntp_response_time INT64, led_1 BOOLEAN ); 
+
+
+CREATE VIEW `daiot-smart-home.devices.sensores_tph_30min_interval` as 
+SELECT
+DATETIME_ADD('2010-01-01', INTERVAL CAST(ROUND(TIMESTAMP_DIFF(timestamp, '2010-01-01',
+MINUTE) /30) * 30 AS INT64) MINUTE ) as tiempo,
+dev_id, round(avg(humedad),2) as humedad,
+(
+select propietario FROM `daiot-smart-home.devices.sensores_tph_desc_ubicacion` as T2
+where T2.dev_id = T1.dev_id
+)
+as propietario,
+round(avg(T1.temperatura +
+(
+select temp_offset FROM `daiot-smart-home.devices.sensores_tph_desc_ubicacion` as T3
+where T3.dev_id = T1.dev_id
+)),2)
+as temperatura
+FROM `daiot-smart-home.devices.sensores_tph_origen` as T1
+group by tiempo,dev_id, propietario
+having tiempo >= current_date() -1
+order by tiempo desc
+
+
+
